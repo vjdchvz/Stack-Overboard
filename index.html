@@ -677,11 +677,58 @@ mark{background:#fff0b3;color:#172b4d;border-radius:2px;padding:0 1px;}
 .ch-refresh button:hover{background:var(--bg);}
 .ch-loading{text-align:center;padding:32px 16px;font-size:12px;color:var(--t3);}
 
+/* section dividers */
+.ch-section{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--t3);margin:10px 0 5px;display:flex;align-items:center;gap:6px;}
+.ch-section::after{content:'';flex:1;height:1px;background:var(--bd);}
+
+/* merge gates */
+.ch-gates{display:flex;flex-direction:column;gap:3px;}
+.ch-gate{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--t2);padding:4px 7px;background:#fff;border-radius:5px;}
+.ch-gate-icon{width:14px;height:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:8px;font-weight:700;}
+.ch-gate-icon.ok{background:#e3fcef;color:#006644;}
+.ch-gate-icon.off{background:#f4f5f7;color:#97a0af;}
+.ch-gate-icon.warn{background:#fffae6;color:#974f0c;}
+.ch-gate-label{flex:1;}
+.ch-gate-val{font-size:9px;color:var(--t3);font-weight:600;}
+
+/* ci runs */
+.ch-ci-bar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.ch-ci-dot{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:default;position:relative;}
+.ch-ci-dot.pass{background:#e3fcef;color:#006644;}
+.ch-ci-dot.fail{background:#ffebe6;color:#bf2600;}
+.ch-ci-dot.running{background:#e6f0ff;color:#0052cc;}
+.ch-ci-dot.skip{background:#f4f5f7;color:#97a0af;}
+.ch-ci-rate{font-size:10px;font-weight:700;margin-left:auto;}
+.ch-ci-rate.ok{color:#36b37e;}
+.ch-ci-rate.warn{color:#ffab00;}
+.ch-ci-rate.bad{color:#ff5630;}
+.ch-ci-name{font-size:9px;color:var(--t3);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* pr review badge */
+.ch-pr-review{font-size:9px;font-weight:600;padding:1px 5px;border-radius:8px;white-space:nowrap;flex-shrink:0;}
+.ch-pr-review.approved{background:#e3fcef;color:#006644;}
+.ch-pr-review.changes{background:#ffebe6;color:#bf2600;}
+.ch-pr-review.pending{background:#f4f5f7;color:#5e6c84;}
+.ch-pr-draft{font-size:9px;color:#97a0af;background:#f4f5f7;padding:1px 5px;border-radius:8px;}
+
+/* suggestions */
+.ch-suggests{display:flex;flex-direction:column;gap:4px;}
+.ch-suggest{display:flex;align-items:flex-start;gap:7px;font-size:10px;color:var(--t2);padding:6px 8px;border-radius:6px;border-left:3px solid transparent;}
+.ch-suggest.high{background:#fff5f5;border-color:#ff5630;color:#3d1a18;}
+.ch-suggest.med{background:#fffbef;border-color:#ffab00;color:#3d2b00;}
+.ch-suggest.low{background:#f0fff8;border-color:#36b37e;color:#0a3828;}
+.ch-suggest-icon{font-size:11px;flex-shrink:0;margin-top:1px;}
+.ch-suggest-text{flex:1;line-height:1.4;}
+
 [data-theme="dark"] .ch-panel{background:#1c2128;border-color:var(--bd);}
 [data-theme="dark"] .ch-hd{border-color:var(--bd);}
 [data-theme="dark"] .ch-token-row{background:#0d1117;}
 [data-theme="dark"] .ch-token-row button{background:#161b22;border-color:var(--bd);color:var(--t2);}
 [data-theme="dark"] .ch-sum-card,[data-theme="dark"] .ch-repo-card{background:#161b22;}
+[data-theme="dark"] .ch-gate,[data-theme="dark"] .ch-metric,[data-theme="dark"] .ch-pr-item{background:#1c2128;}
+[data-theme="dark"] .ch-suggest.high{background:#2d1414;color:#ffd2cc;}
+[data-theme="dark"] .ch-suggest.med{background:#2d2410;color:#ffe8a3;}
+[data-theme="dark"] .ch-suggest.low{background:#0e2620;color:#b3f5d6;}
 [data-theme="dark"] .ch-metric{background:#1c2128;}
 [data-theme="dark"] .ch-pr-item{background:#1c2128;}
 [data-theme="dark"] .ch-refresh button{background:#161b22;border-color:var(--bd);}
@@ -2537,13 +2584,43 @@ async function chLoadAll(){
 }
 
 async function chLoadRepo(r){
-  const [prs, commits, repoInfo] = await Promise.all([
-    chFetch(`/repos/${r.repo}/pulls?state=open&per_page=10`),
+  const [rawPRs, commits, repoInfo, ciData] = await Promise.all([
+    chFetch(`/repos/${r.repo}/pulls?state=open&per_page=20`),
     chFetch(`/repos/${r.repo}/commits?per_page=30`),
-    chFetch(`/repos/${r.repo}/`)
+    chFetch(`/repos/${r.repo}/`),
+    chFetch(`/repos/${r.repo}/actions/runs?per_page=8`).catch(()=>({workflow_runs:[]})),
   ]);
 
-  // commit activity: group last 14 days
+  const defBranch = repoInfo.default_branch || 'develop';
+
+  // Branch protection
+  let protection = null;
+  try { protection = await chFetch(`/repos/${r.repo}/branches/${defBranch}/protection`); } catch(e){}
+
+  // Reviews for top 5 open PRs
+  const topPRs = rawPRs.slice(0, 5);
+  const reviewsArr = await Promise.all(
+    topPRs.map(p => chFetch(`/repos/${r.repo}/pulls/${p.number}/reviews`).catch(()=>[]))
+  );
+  const prsWithReviews = topPRs.map((p, i) => {
+    const reviews = reviewsArr[i] || [];
+    const byReviewer = {};
+    reviews.forEach(rv => { byReviewer[rv.user.login] = rv.state; });
+    const states = Object.values(byReviewer);
+    const approved = states.filter(s=>s==='APPROVED').length;
+    const changesReq = states.filter(s=>s==='CHANGES_REQUESTED').length;
+    const reviewState = changesReq > 0 ? 'changes' : approved > 0 ? 'approved' : 'pending';
+    const ageH = Math.floor((Date.now()-new Date(p.created_at).getTime())/(1000*60*60));
+    return { ...p, reviewState, approved, changesReq, ageH };
+  });
+
+  // CI runs
+  const ciRuns = (ciData.workflow_runs || []).slice(0, 8);
+  const finishedRuns = ciRuns.filter(r=>r.conclusion);
+  const ciPassRate = finishedRuns.length ? Math.round(finishedRuns.filter(r=>r.conclusion==='success').length/finishedRuns.length*100) : null;
+  const lastRun = ciRuns[0] || null;
+
+  // Commit activity: last 14 days
   const now = Date.now();
   const days = Array(14).fill(0);
   commits.forEach(c=>{
@@ -2552,26 +2629,40 @@ async function chLoadRepo(r){
     if(daysAgo>=0 && daysAgo<14) days[13-daysAgo]++;
   });
 
-  // last commit age
   const lastCommit = commits[0]?.commit?.author?.date;
   const lastCommitAge = lastCommit ? Math.floor((now-new Date(lastCommit).getTime())/(1000*60*60)) : null;
+  const openPRs = rawPRs.length;
 
-  // score = starts at 100, deductions:
-  // open PRs > 3: -5 each
-  // last commit > 48h: -20
-  // last commit > 168h (week): -40
+  // Score
   let score = 100;
-  const openPRs = prs.length;
   if(openPRs > 3) score -= (openPRs-3)*5;
   if(lastCommitAge !== null){
     if(lastCommitAge > 168) score -= 40;
     else if(lastCommitAge > 48) score -= 20;
   }
+  if(lastRun?.conclusion === 'failure') score -= 20;
+  if(ciPassRate !== null && ciPassRate < 60) score -= 10;
+  const changesReqCount = prsWithReviews.filter(p=>p.reviewState==='changes').length;
+  score -= changesReqCount * 8;
+  const stalePRCount = prsWithReviews.filter(p=>p.ageH > 168).length;
+  score -= stalePRCount * 5;
   score = Math.max(0, Math.min(100, score));
 
-  return { ...r, prs, commits: days, openPRs, lastCommitAge, score,
-    stars: repoInfo.stargazers_count, defaultBranch: repoInfo.default_branch,
-    recentPRs: prs.slice(0,4) };
+  // Suggestions
+  const suggestions = [];
+  prsWithReviews.forEach(p=>{
+    if(p.reviewState==='changes') suggestions.push({priority:'high', text:`PR #${p.number} has changes requested — needs rework before merge`});
+    else if(p.reviewState==='pending' && p.ageH>24) suggestions.push({priority:'med', text:`PR #${p.number} has been waiting for review ${chAgeLabel(p.ageH)}`});
+    if(p.ageH>168 && p.reviewState!=='changes') suggestions.push({priority:'high', text:`PR #${p.number} is stale (${Math.floor(p.ageH/24)}d open) — merge or close it`});
+  });
+  if(lastRun?.conclusion==='failure') suggestions.push({priority:'high', text:`CI is failing on "${lastRun.head_branch}" — fix before any merge`});
+  if(lastCommitAge > 168) suggestions.push({priority:'med', text:`No commits in ${Math.floor(lastCommitAge/24)} days — is work stalled?`});
+  if(openPRs > 5) suggestions.push({priority:'med', text:`${openPRs} open PRs — consider scheduling a review session`});
+  if(!protection) suggestions.push({priority:'low', text:`Branch protection rules not detected on "${defBranch}"`});
+  if(suggestions.length===0) suggestions.push({priority:'low', text:'Repo looks healthy — keep it up!'});
+
+  return { ...r, commitDays: days, prsWithReviews, openPRs, lastCommitAge, score,
+    defaultBranch: defBranch, protection, ciRuns, ciPassRate, lastRun, suggestions };
 }
 
 function chAgeLabel(h){
@@ -2613,10 +2704,44 @@ function chSparkline(days, color){
   return `<svg class="ch-sparkline" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}</svg>`;
 }
 
+function chGates(protection, defBranch){
+  if(!protection) return `<div class="ch-gate"><span class="ch-gate-icon off">?</span><span class="ch-gate-label">Branch protection not readable (needs admin)</span></div>`;
+  const req = protection.required_pull_request_reviews;
+  const checks = protection.required_status_checks;
+  const items = [];
+  const reqCount = req?.required_approving_review_count ?? 0;
+  items.push({ok: reqCount>0, label:`Required approvals`, val: reqCount>0?`${reqCount} reviewer${reqCount>1?'s':''}` : 'None set'});
+  items.push({ok: req?.dismiss_stale_reviews, label:'Dismiss stale reviews', val: req?.dismiss_stale_reviews?'On':'Off'});
+  items.push({ok: checks?.strict, label:'Branch must be up-to-date', val: checks?.strict?'On':'Off'});
+  const ctxList = checks?.contexts || [];
+  items.push({ok: ctxList.length>0, label:`Status checks required`, val: ctxList.length>0?ctxList.join(', '):'None'});
+  items.push({ok: protection.enforce_admins?.enabled, label:'Enforce rules for admins', val: protection.enforce_admins?.enabled?'On':'Off', warn:true});
+  return items.map(it=>{
+    const iconCls = it.ok ? 'ok' : (it.warn?'warn':'off');
+    const icon = it.ok ? '✓' : '–';
+    return `<div class="ch-gate"><span class="ch-gate-icon ${iconCls}">${icon}</span><span class="ch-gate-label">${it.label}</span><span class="ch-gate-val">${it.val}</span></div>`;
+  }).join('');
+}
+
+function chCIBar(ciRuns, ciPassRate){
+  if(!ciRuns.length) return `<div style="font-size:10px;color:var(--t3)">No CI runs found</div>`;
+  const dots = ciRuns.map(run=>{
+    const cls = run.conclusion==='success'?'pass':run.conclusion==='failure'?'fail':run.status==='in_progress'?'running':'skip';
+    const icon = cls==='pass'?'✓':cls==='fail'?'✗':cls==='running'?'●':'–';
+    const label = `${run.name} · ${run.head_branch} · ${run.conclusion||run.status}`;
+    return `<div class="ch-ci-dot ${cls}" title="${label}">${icon}</div>`;
+  }).join('');
+  const rateCls = ciPassRate===null?'':ciPassRate>=80?'ok':ciPassRate>=50?'warn':'bad';
+  const rateLabel = ciPassRate===null?'—':`${ciPassRate}%`;
+  return `<div class="ch-ci-bar">${dots}<span class="ch-ci-rate ${rateCls}">${rateLabel} pass</span></div>
+    <div class="ch-ci-name">${ciRuns[0]?.name||''} · last: ${ciRuns[0]?.head_branch||''}</div>`;
+}
+
 function chRender(repos){
   const avgScore = Math.round(repos.reduce((s,r)=>s+r.score,0)/repos.length);
   const totalPRs = repos.reduce((s,r)=>s+r.openPRs,0);
-  const freshest = repos.reduce((a,b)=>(a.lastCommitAge||999)<(b.lastCommitAge||999)?a:b);
+  const freshest = repos.reduce((a,b)=>(a.lastCommitAge||9999)<(b.lastCommitAge||9999)?a:b);
+  const allSuggestions = repos.flatMap(r=>r.suggestions.filter(s=>s.priority==='high').map(s=>({...s,repo:r.name})));
 
   let html=`
   <div class="ch-summary">
@@ -2629,24 +2754,35 @@ function chRender(repos){
       <div class="ch-sum-label">Open PRs</div>
     </div>
     <div class="ch-sum-card">
-      <div class="ch-sum-score" style="font-size:13px;padding-top:4px">${freshest.name}</div>
+      <div class="ch-sum-score" style="font-size:12px;padding-top:4px">${freshest.name}</div>
       <div class="ch-sum-label">Most Active</div>
     </div>
   </div>`;
 
+  // Top-level critical suggestions across all repos
+  if(allSuggestions.length){
+    html+=`<div class="ch-section">Action items</div><div class="ch-suggests">`;
+    allSuggestions.slice(0,4).forEach(s=>{
+      html+=`<div class="ch-suggest high"><span class="ch-suggest-icon">⚠</span><span class="ch-suggest-text"><b>${s.repo}:</b> ${s.text}</span></div>`;
+    });
+    html+=`</div>`;
+  }
+
   repos.forEach(r=>{
-    const sc=r.score, cls=chScoreClass(sc), col=chScoreColor(sc);
-    const stateLabel = sc>=80?'Healthy':sc>=60?'Needs attention':'Critical';
+    const sc=r.score, col=chScoreColor(sc);
+    const stateLabel = sc>=80?'Healthy':sc>=60?'Needs work':'Critical';
     const stateCls   = sc>=80?'':sc>=60?'warn':'bad';
+
     html+=`<div class="ch-repo-card">
       <div class="ch-repo-header">
         ${chDonut(sc,col)}
         <div class="ch-repo-info">
           <div class="ch-repo-name">${r.name}</div>
-          <div class="ch-repo-meta">${r.lang} · Last commit ${chAgeLabel(r.lastCommitAge)}</div>
+          <div class="ch-repo-meta">${r.lang} · ${r.defaultBranch} · last commit ${chAgeLabel(r.lastCommitAge)}</div>
         </div>
         <span class="ch-repo-status ${stateCls}">${stateLabel}</span>
       </div>
+
       <div class="ch-metrics">
         <div class="ch-metric">
           <div class="ch-metric-val ${r.openPRs>4?'bad':r.openPRs>1?'warn':'ok'}">${r.openPRs}</div>
@@ -2654,27 +2790,55 @@ function chRender(repos){
         </div>
         <div class="ch-metric">
           <div class="ch-metric-val ${r.lastCommitAge>168?'bad':r.lastCommitAge>48?'warn':'ok'}">${chAgeLabel(r.lastCommitAge)}</div>
-          <div class="ch-metric-label">Last commit</div>
+          <div class="ch-metric-label">Last Commit</div>
+        </div>
+        <div class="ch-metric">
+          <div class="ch-metric-val ${r.ciPassRate===null?'':r.ciPassRate>=80?'ok':r.ciPassRate>=50?'warn':'bad'}">${r.ciPassRate===null?'—':r.ciPassRate+'%'}</div>
+          <div class="ch-metric-label">CI Pass Rate</div>
+        </div>
+        <div class="ch-metric">
+          <div class="ch-metric-val ${r.prsWithReviews.filter(p=>p.reviewState==='changes').length>0?'bad':'ok'}">${r.prsWithReviews.filter(p=>p.reviewState==='changes').length}</div>
+          <div class="ch-metric-label">Changes Req.</div>
         </div>
       </div>
-      <div class="ch-sparkline-wrap">
-        <div class="ch-sparkline-label">Commits — last 14 days</div>
-        ${chSparkline(r.commits, r.color)}
-      </div>
-      ${r.recentPRs.length?`<div class="ch-prs">${r.recentPRs.map(p=>{
-        const age=Math.floor((Date.now()-new Date(p.created_at).getTime())/(1000*60*60));
+
+      <div class="ch-section">CI Runs</div>
+      ${chCIBar(r.ciRuns, r.ciPassRate)}
+
+      <div class="ch-section">Merge Gates <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">(${r.defaultBranch})</span></div>
+      <div class="ch-gates">${chGates(r.protection, r.defaultBranch)}</div>
+
+      <div class="ch-section">Open PRs</div>
+      ${r.prsWithReviews.length ? `<div class="ch-prs">${r.prsWithReviews.map(p=>{
+        const reviewBadge = p.draft
+          ? `<span class="ch-pr-draft">Draft</span>`
+          : p.reviewState==='approved'
+            ? `<span class="ch-pr-review approved">✓ ${p.approved} approved</span>`
+            : p.reviewState==='changes'
+              ? `<span class="ch-pr-review changes">✗ Changes req.</span>`
+              : `<span class="ch-pr-review pending">⏳ Awaiting review</span>`;
         return `<div class="ch-pr-item">
           <span class="ch-pr-num">#${p.number}</span>
-          <span class="ch-pr-title" title="${p.title}">${p.title}</span>
-          <span class="ch-pr-age">${chAgeLabel(age)}</span>
+          <span class="ch-pr-title" title="${p.title.replace(/"/g,'&quot;')}">${p.title}</span>
+          ${reviewBadge}
+          <span class="ch-pr-age">${chAgeLabel(p.ageH)}</span>
         </div>`;
-      }).join('')}</div>`:''}
+      }).join('')}</div>` : `<div style="font-size:10px;color:var(--t3);padding:4px 0">No open PRs</div>`}
+
+      <div class="ch-section">Commits — last 14 days</div>
+      ${chSparkline(r.commitDays, r.color)}
+
+      <div class="ch-section">Suggestions</div>
+      <div class="ch-suggests">${r.suggestions.map(s=>{
+        const icon = s.priority==='high'?'⚠':s.priority==='med'?'→':'✓';
+        return `<div class="ch-suggest ${s.priority}"><span class="ch-suggest-icon">${icon}</span><span class="ch-suggest-text">${s.text}</span></div>`;
+      }).join('')}</div>
+
     </div>`;
   });
 
   html+=`<div class="ch-refresh">
-    <span id="ch-last-updated-bottom"></span>
-    <button onclick="chLoadAll()">↻ Refresh</button>
+    <button onclick="chLoadAll()">↻ Refresh all</button>
   </div>`;
 
   document.getElementById('ch-content').innerHTML=html;
