@@ -291,7 +291,7 @@ export default {
         const seen = new Set();
         const tickets = [...(rows1 || []), ...rows2]
           .filter(r => r.document)
-          .map(r => ({ id: r.document.name.split('/').pop(), ...fromFirestoreDoc(r.document) }))
+          .map(r => ({ ...fromFirestoreDoc(r.document), id: r.document.name.split('/').pop() }))
           .filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; })
           .filter(t => !t.parentId)
           .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -399,6 +399,47 @@ export default {
 
         const total = Object.values(results).reduce((s, r) => s + r.length, 0);
         return Response.json({ message: `Backfilled ${total} tickets across ${Object.keys(results).length} board(s).`, boards: results }, { headers: cors });
+      }
+
+      // POST /admin/settings — write key/value pairs to meta/settings
+      if (request.method === 'POST' && path === '/admin/settings') {
+        const body = await request.json().catch(() => ({}));
+        const fsToken = await getFirestoreToken(env);
+        const fields = {};
+        for (const [k, v] of Object.entries(body)) {
+          fields[k] = { stringValue: String(v) };
+        }
+        const res = await fetch(
+          `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/meta/settings?currentDocument.exists=false`,
+          { method: 'POST', headers: { Authorization: `Bearer ${fsToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields }) }
+        );
+        if (!res.ok) {
+          // doc exists — patch instead
+          const mask = Object.keys(body).map(k => `updateMask.fieldPaths=${k}`).join('&');
+          const patchRes = await fetch(
+            `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/meta/settings?${mask}`,
+            { method: 'PATCH', headers: { Authorization: `Bearer ${fsToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields }) }
+          );
+          const d = await patchRes.json();
+          return Response.json({ ok: true, action: 'updated', name: d.name }, { headers: cors });
+        }
+        const d = await res.json();
+        return Response.json({ ok: true, action: 'created', name: d.name }, { headers: cors });
+      }
+
+      // GET /github/* — proxy to GitHub API using server-side token
+      if (request.method === 'GET' && path.startsWith('/github/')) {
+        const ghPath = path.replace('/github', '');
+        const ghSearch = url.search;
+        const ghRes = await fetch(`https://api.github.com${ghPath}${ghSearch}`, {
+          headers: {
+            Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+            Accept: 'application/vnd.github+json',
+            'User-Agent': 'StackOverBoard/1.0',
+          },
+        });
+        const ghData = await ghRes.json();
+        return Response.json(ghData, { status: ghRes.status, headers: cors });
       }
 
       return Response.json({ error: 'Not found.', routes: ['GET /boards', 'GET /tickets', 'GET /tickets/:id', 'POST /tickets', 'PATCH /tickets/:id', 'POST /admin/backfill-ids'] }, { status: 404, headers: cors });
