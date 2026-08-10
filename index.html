@@ -2498,9 +2498,7 @@ function toggleHealth(){
   chOpen = !chOpen;
   document.getElementById('ch-panel').classList.toggle('open', chOpen);
   if(chOpen && document.getElementById('ch-content').querySelector('.ch-loading')){
-    chGetToken().then(tok=>{
-      if(tok){ document.getElementById('ch-token-input').value='●'.repeat(20); chLoadAll(); }
-    });
+    chGetToken().then(tok=>{ if(tok) chLoadAll(); });
   }
 }
 
