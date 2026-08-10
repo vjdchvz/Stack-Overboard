@@ -2469,20 +2469,43 @@ const CH_REPOS = [
 const CH_METRICS_KEY = 'sob-ch-metrics';
 const CH_TOKEN_KEY   = 'sob-gh-token';
 let chOpen = false;
+let chCachedToken = null;
+
+async function chGetToken(){
+  if(chCachedToken) return chCachedToken;
+  const local = localStorage.getItem(CH_TOKEN_KEY);
+  if(local){ chCachedToken=local; return local; }
+  try{
+    const snap = await db.collection('meta').doc('settings').get();
+    if(snap.exists && snap.data().githubToken){
+      chCachedToken = snap.data().githubToken;
+      localStorage.setItem(CH_TOKEN_KEY, chCachedToken);
+      return chCachedToken;
+    }
+  }catch(e){}
+  return '';
+}
+
+async function chSaveToken(v){
+  const tok = v.trim();
+  if(!tok) return;
+  localStorage.setItem(CH_TOKEN_KEY, tok);
+  chCachedToken = tok;
+  try{ await db.collection('meta').doc('settings').set({githubToken:tok},{merge:true}); }catch(e){}
+}
 
 function toggleHealth(){
   chOpen = !chOpen;
   document.getElementById('ch-panel').classList.toggle('open', chOpen);
   if(chOpen && document.getElementById('ch-content').querySelector('.ch-loading')){
-    const tok = localStorage.getItem(CH_TOKEN_KEY)||'';
-    document.getElementById('ch-token-input').value = tok;
-    if(tok) chLoadAll();
+    chGetToken().then(tok=>{
+      if(tok){ document.getElementById('ch-token-input').value='●'.repeat(20); chLoadAll(); }
+    });
   }
 }
-function chSaveToken(v){ localStorage.setItem(CH_TOKEN_KEY, v.trim()); }
 
 async function chFetch(path){
-  const tok = localStorage.getItem(CH_TOKEN_KEY)||'';
+  const tok = await chGetToken();
   const r = await fetch('https://api.github.com'+path, {
     headers: tok ? {Authorization:'Bearer '+tok, Accept:'application/vnd.github+json'} : {Accept:'application/vnd.github+json'}
   });
