@@ -2471,16 +2471,24 @@ const CH_TOKEN_KEY   = 'sob-gh-token';
 let chOpen = false;
 let chCachedToken = null;
 
+function chIsValidToken(t){ return t && /^[\x20-\x7E]+$/.test(t); }
+
 async function chGetToken(){
   if(chCachedToken) return chCachedToken;
   const local = localStorage.getItem(CH_TOKEN_KEY);
-  if(local){ chCachedToken=local; return local; }
+  if(local){
+    if(!chIsValidToken(local)){ localStorage.removeItem(CH_TOKEN_KEY); }
+    else { chCachedToken=local; return local; }
+  }
   try{
     const snap = await db.collection('meta').doc('settings').get();
-    if(snap.exists && snap.data().githubToken){
-      chCachedToken = snap.data().githubToken;
-      localStorage.setItem(CH_TOKEN_KEY, chCachedToken);
-      return chCachedToken;
+    const tok = snap.exists && snap.data().githubToken;
+    if(chIsValidToken(tok)){
+      chCachedToken = tok;
+      localStorage.setItem(CH_TOKEN_KEY, tok);
+      return tok;
+    } else if(tok){
+      await db.collection('meta').doc('settings').set({githubToken:''},{merge:true});
     }
   }catch(e){}
   return '';
