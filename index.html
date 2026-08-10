@@ -1262,6 +1262,7 @@ auth.onAuthStateChanged(user=>{
     document.getElementById('user-name-label').textContent=user.displayName||user.email;
     startPresence(user);
     startBoards();
+    startTasksSubscription();
     playSuccess();
   } else {
     loginScreen.classList.remove('hidden');
@@ -2425,6 +2426,7 @@ function onDrop(e,status){
   }
   dragId=null;dragOverId=null;
 }
+function startTasksSubscription(){
 COL.orderBy('order').onSnapshot(snap=>{
   if(snap.empty&&!seeded){
     seeded=true;
@@ -2447,6 +2449,7 @@ COL.orderBy('order').onSnapshot(snap=>{
   console.error('Firestore onSnapshot error:',err);
   document.getElementById('board-columns').innerHTML=`<div style="padding:2rem;color:red">⚠️ Failed to load tasks: ${err.message}</div>`;
 });
+}
 
 document.getElementById('del-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDel();});
 document.getElementById('add-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAddModal();});
