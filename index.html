@@ -607,6 +607,85 @@ mark{background:#fff0b3;color:#172b4d;border-radius:2px;padding:0 1px;}
 .btn-dark:hover{background:rgba(255,255,255,.2);color:#fff;}
 .btn-dark svg{width:14px;height:14px;stroke:currentColor;pointer-events:none;}
 
+/* CODE HEALTH PANEL */
+.btn-health{background:rgba(255,255,255,.1);border:none;border-radius:6px;padding:5px 10px;cursor:pointer;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;font-family:inherit;transition:all .12s;flex-shrink:0;}
+.btn-health:hover{background:rgba(255,255,255,.18);color:#fff;}
+.btn-health svg{width:14px;height:14px;stroke:currentColor;}
+.btn-health .health-dot{width:7px;height:7px;border-radius:50%;background:#36b37e;display:inline-block;box-shadow:0 0 0 2px rgba(54,179,126,.3);}
+.btn-health .health-dot.warn{background:#ffab00;box-shadow:0 0 0 2px rgba(255,171,0,.3);}
+.btn-health .health-dot.bad{background:#ff5630;box-shadow:0 0 0 2px rgba(255,86,48,.3);}
+
+.ch-panel{width:0;min-width:0;background:#fff;border-left:1px solid var(--bd);overflow:hidden;transition:width .22s ease;flex-shrink:0;display:flex;flex-direction:column;}
+.ch-panel.open{width:380px;min-width:380px;}
+.ch-inner{width:380px;display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.ch-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bd);flex-shrink:0;}
+.ch-hd-left{display:flex;flex-direction:column;gap:2px;}
+.ch-hd-title{font-size:12px;font-weight:700;color:var(--t1);text-transform:uppercase;letter-spacing:.06em;}
+.ch-hd-sub{font-size:10px;color:var(--t3);}
+.ch-close{background:none;border:none;cursor:pointer;color:var(--t3);padding:4px;border-radius:4px;display:flex;}
+.ch-close:hover{background:var(--bg);}
+.ch-close svg{width:14px;height:14px;stroke:currentColor;}
+.ch-body{flex:1;overflow-y:auto;padding:12px;}
+.ch-body::-webkit-scrollbar{width:3px;}
+.ch-body::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
+
+.ch-token-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg);border-radius:6px;margin-bottom:12px;}
+.ch-token-row input{flex:1;border:none;background:none;font-size:11px;color:var(--t1);font-family:monospace;outline:none;}
+.ch-token-row input::placeholder{color:var(--t3);}
+.ch-token-row button{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--bd);background:#fff;color:var(--t2);cursor:pointer;font-family:inherit;white-space:nowrap;}
+.ch-token-row button:hover{background:var(--bg);}
+
+.ch-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+.ch-sum-card{background:var(--bg);border-radius:8px;padding:10px;text-align:center;}
+.ch-sum-score{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--t1);}
+.ch-sum-score.good{color:#36b37e;}
+.ch-sum-score.warn{color:#ffab00;}
+.ch-sum-score.bad{color:#ff5630;}
+.ch-sum-label{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+
+.ch-repo-card{background:var(--bg);border-radius:10px;padding:12px;margin-bottom:10px;}
+.ch-repo-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.ch-repo-ring{flex-shrink:0;}
+.ch-repo-ring svg{display:block;}
+.ch-repo-info{flex:1;min-width:0;}
+.ch-repo-name{font-size:13px;font-weight:700;color:var(--t1);}
+.ch-repo-meta{font-size:10px;color:var(--t3);margin-top:1px;}
+.ch-repo-status{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;background:#e3fcef;color:#006644;white-space:nowrap;}
+.ch-repo-status.warn{background:#fffae6;color:#974f0c;}
+.ch-repo-status.bad{background:#ffebe6;color:#bf2600;}
+
+.ch-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+.ch-metric{background:#fff;border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;}
+.ch-metric-val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--t1);}
+.ch-metric-val.ok{color:#36b37e;}
+.ch-metric-val.warn{color:#ffab00;}
+.ch-metric-val.bad{color:#ff5630;}
+.ch-metric-label{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;}
+
+.ch-sparkline-wrap{margin-top:4px;}
+.ch-sparkline-label{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.ch-sparkline{width:100%;height:36px;display:block;}
+
+.ch-prs{display:flex;flex-direction:column;gap:4px;margin-top:8px;}
+.ch-pr-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--t2);background:#fff;border-radius:5px;padding:6px 8px;}
+.ch-pr-num{font-size:10px;font-weight:600;color:#0052cc;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.ch-pr-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ch-pr-age{font-size:9px;color:var(--t3);white-space:nowrap;}
+
+.ch-refresh{display:flex;align-items:center;gap:6px;padding:8px 0 4px;font-size:10px;color:var(--t3);}
+.ch-refresh button{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--bd);background:#fff;color:var(--t2);cursor:pointer;font-family:inherit;}
+.ch-refresh button:hover{background:var(--bg);}
+.ch-loading{text-align:center;padding:32px 16px;font-size:12px;color:var(--t3);}
+
+[data-theme="dark"] .ch-panel{background:#1c2128;border-color:var(--bd);}
+[data-theme="dark"] .ch-hd{border-color:var(--bd);}
+[data-theme="dark"] .ch-token-row{background:#0d1117;}
+[data-theme="dark"] .ch-token-row button{background:#161b22;border-color:var(--bd);color:var(--t2);}
+[data-theme="dark"] .ch-sum-card,[data-theme="dark"] .ch-repo-card{background:#161b22;}
+[data-theme="dark"] .ch-metric{background:#1c2128;}
+[data-theme="dark"] .ch-pr-item{background:#1c2128;}
+[data-theme="dark"] .ch-refresh button{background:#161b22;border-color:var(--bd);}
+
 /* export button */
 .btn-export{background:rgba(255,255,255,.1);border:none;border-radius:6px;padding:5px 10px;font-size:11px;color:rgba(255,255,255,.7);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .12s;}
 .export-wrap{position:relative;}
@@ -681,6 +760,10 @@ mark{background:#fff0b3;color:#172b4d;border-radius:2px;padding:0 1px;}
     <input type="text" id="global-search" placeholder="Search tasks…" oninput="renderBoard()"/>
   </div>
   <div class="topbar-right">
+    <button class="btn-health" onclick="toggleHealth()" id="btn-health" title="Code Health">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Code Health <span class="health-dot" id="health-dot"></span>
+    </button>
     <button class="btn-activity" onclick="toggleActivity()">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Activity <span class="activity-dot" id="activity-dot" style="display:none"></span>
@@ -909,6 +992,29 @@ mark{background:#fff0b3;color:#172b4d;border-radius:2px;padding:0 1px;}
     </div>
   </div>
 </div>
+
+  <!-- CODE HEALTH PANEL -->
+  <div class="ch-panel" id="ch-panel">
+    <div class="ch-inner">
+      <div class="ch-hd">
+        <div class="ch-hd-left">
+          <span class="ch-hd-title">Code Health</span>
+          <span class="ch-hd-sub" id="ch-last-updated">Not loaded yet</span>
+        </div>
+        <button class="ch-close" onclick="toggleHealth()">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="ch-body">
+        <div class="ch-token-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;flex-shrink:0;color:var(--t3)"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="ch-token-input" placeholder="GitHub token (repo scope)…" oninput="chSaveToken(this.value)"/>
+          <button onclick="chLoadAll()">Refresh</button>
+        </div>
+        <div id="ch-content"><div class="ch-loading">Enter a GitHub token and click Refresh.</div></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ACTIVITY PANEL -->
   <div class="activity-panel" id="activity-panel">
@@ -2350,6 +2456,195 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeDel();closeAddModal();closeDetail();}
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();document.getElementById('global-search').focus();}
 });
+
+// ── CODE HEALTH PANEL ──────────────────────────────────────────────
+const CH_REPOS = [
+  {key:'website', name:'Website',  lang:'TypeScript', repo:'hirush-io/hirush-website',  color:'#0052cc'},
+  {key:'admin',   name:'Admin',    lang:'TypeScript', repo:'hirush-io/hirush-admin',    color:'#6554c0'},
+  {key:'backend', name:'Backend',  lang:'Python',     repo:'hirush-io/hirush-backend',  color:'#00875a'},
+];
+const CH_METRICS_KEY = 'sob-ch-metrics';
+const CH_TOKEN_KEY   = 'sob-gh-token';
+let chOpen = false;
+
+function toggleHealth(){
+  chOpen = !chOpen;
+  document.getElementById('ch-panel').classList.toggle('open', chOpen);
+  if(chOpen && document.getElementById('ch-content').querySelector('.ch-loading')){
+    const tok = localStorage.getItem(CH_TOKEN_KEY)||'';
+    document.getElementById('ch-token-input').value = tok;
+    if(tok) chLoadAll();
+  }
+}
+function chSaveToken(v){ localStorage.setItem(CH_TOKEN_KEY, v.trim()); }
+
+async function chFetch(path){
+  const tok = localStorage.getItem(CH_TOKEN_KEY)||'';
+  const r = await fetch('https://api.github.com'+path, {
+    headers: tok ? {Authorization:'Bearer '+tok, Accept:'application/vnd.github+json'} : {Accept:'application/vnd.github+json'}
+  });
+  if(!r.ok) throw new Error(r.status+' '+r.statusText);
+  return r.json();
+}
+
+async function chLoadAll(){
+  document.getElementById('ch-content').innerHTML='<div class="ch-loading">Loading from GitHub…</div>';
+  try {
+    const results = await Promise.all(CH_REPOS.map(chLoadRepo));
+    chRender(results);
+    document.getElementById('ch-last-updated').textContent = 'Updated '+new Date().toLocaleTimeString();
+    // update topbar dot
+    const avg = results.reduce((s,r)=>s+r.score,0)/results.length;
+    const dot = document.getElementById('health-dot');
+    dot.className = 'health-dot'+(avg<60?' bad':avg<80?' warn':'');
+  } catch(e){
+    document.getElementById('ch-content').innerHTML=`<div class="ch-loading" style="color:#ff5630">Failed: ${e.message}<br><br>Make sure your GitHub token has <b>repo</b> scope.</div>`;
+  }
+}
+
+async function chLoadRepo(r){
+  const [prs, commits, repoInfo] = await Promise.all([
+    chFetch(`/repos/${r.repo}/pulls?state=open&per_page=10`),
+    chFetch(`/repos/${r.repo}/commits?per_page=30`),
+    chFetch(`/repos/${r.repo}/`)
+  ]);
+
+  // commit activity: group last 14 days
+  const now = Date.now();
+  const days = Array(14).fill(0);
+  commits.forEach(c=>{
+    const d = new Date(c.commit.author.date);
+    const daysAgo = Math.floor((now - d.getTime())/(1000*60*60*24));
+    if(daysAgo>=0 && daysAgo<14) days[13-daysAgo]++;
+  });
+
+  // last commit age
+  const lastCommit = commits[0]?.commit?.author?.date;
+  const lastCommitAge = lastCommit ? Math.floor((now-new Date(lastCommit).getTime())/(1000*60*60)) : null;
+
+  // score = starts at 100, deductions:
+  // open PRs > 3: -5 each
+  // last commit > 48h: -20
+  // last commit > 168h (week): -40
+  let score = 100;
+  const openPRs = prs.length;
+  if(openPRs > 3) score -= (openPRs-3)*5;
+  if(lastCommitAge !== null){
+    if(lastCommitAge > 168) score -= 40;
+    else if(lastCommitAge > 48) score -= 20;
+  }
+  score = Math.max(0, Math.min(100, score));
+
+  return { ...r, prs, commits: days, openPRs, lastCommitAge, score,
+    stars: repoInfo.stargazers_count, defaultBranch: repoInfo.default_branch,
+    recentPRs: prs.slice(0,4) };
+}
+
+function chAgeLabel(h){
+  if(h===null) return '—';
+  if(h<1) return 'just now';
+  if(h<24) return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+
+function chScoreColor(s){ return s>=80?'#36b37e':s>=60?'#ffab00':'#ff5630'; }
+function chScoreClass(s){ return s>=80?'good':s>=60?'warn':'bad'; }
+
+function chDonut(score, color, size=52){
+  const r=20, cx=size/2, cy=size/2;
+  const circ=2*Math.PI*r;
+  const dash=circ*(score/100);
+  const gap=circ-dash;
+  const bg= document.body.dataset.theme==='dark'?'#21262d':'#e8ecf0';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="ch-repo-ring">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${bg}" stroke-width="5"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="5"
+      stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}"
+      stroke-dashoffset="${circ*0.25}" stroke-linecap="round"/>
+    <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="11" font-weight="700" fill="${color}" font-family="Inter,system-ui,sans-serif">${score}</text>
+  </svg>`;
+}
+
+function chSparkline(days, color){
+  const max = Math.max(...days,1);
+  const W=348, H=36, pad=2;
+  const barW=(W-pad*(days.length-1))/days.length;
+  const bars=days.map((v,i)=>{
+    const bh=Math.max(3,Math.round((v/max)*(H-4)));
+    const x=i*(barW+pad);
+    const y=H-bh;
+    const alpha=0.3+0.7*(v/max);
+    return `<rect x="${x.toFixed(1)}" y="${y}" width="${barW.toFixed(1)}" height="${bh}" rx="2" fill="${color}" opacity="${alpha.toFixed(2)}"/>`;
+  }).join('');
+  return `<svg class="ch-sparkline" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${bars}</svg>`;
+}
+
+function chRender(repos){
+  const avgScore = Math.round(repos.reduce((s,r)=>s+r.score,0)/repos.length);
+  const totalPRs = repos.reduce((s,r)=>s+r.openPRs,0);
+  const freshest = repos.reduce((a,b)=>(a.lastCommitAge||999)<(b.lastCommitAge||999)?a:b);
+
+  let html=`
+  <div class="ch-summary">
+    <div class="ch-sum-card">
+      <div class="ch-sum-score ${chScoreClass(avgScore)}">${avgScore}</div>
+      <div class="ch-sum-label">Avg Health</div>
+    </div>
+    <div class="ch-sum-card">
+      <div class="ch-sum-score ${totalPRs>5?'bad':totalPRs>2?'warn':'good'}">${totalPRs}</div>
+      <div class="ch-sum-label">Open PRs</div>
+    </div>
+    <div class="ch-sum-card">
+      <div class="ch-sum-score" style="font-size:13px;padding-top:4px">${freshest.name}</div>
+      <div class="ch-sum-label">Most Active</div>
+    </div>
+  </div>`;
+
+  repos.forEach(r=>{
+    const sc=r.score, cls=chScoreClass(sc), col=chScoreColor(sc);
+    const stateLabel = sc>=80?'Healthy':sc>=60?'Needs attention':'Critical';
+    const stateCls   = sc>=80?'':sc>=60?'warn':'bad';
+    html+=`<div class="ch-repo-card">
+      <div class="ch-repo-header">
+        ${chDonut(sc,col)}
+        <div class="ch-repo-info">
+          <div class="ch-repo-name">${r.name}</div>
+          <div class="ch-repo-meta">${r.lang} · Last commit ${chAgeLabel(r.lastCommitAge)}</div>
+        </div>
+        <span class="ch-repo-status ${stateCls}">${stateLabel}</span>
+      </div>
+      <div class="ch-metrics">
+        <div class="ch-metric">
+          <div class="ch-metric-val ${r.openPRs>4?'bad':r.openPRs>1?'warn':'ok'}">${r.openPRs}</div>
+          <div class="ch-metric-label">Open PRs</div>
+        </div>
+        <div class="ch-metric">
+          <div class="ch-metric-val ${r.lastCommitAge>168?'bad':r.lastCommitAge>48?'warn':'ok'}">${chAgeLabel(r.lastCommitAge)}</div>
+          <div class="ch-metric-label">Last commit</div>
+        </div>
+      </div>
+      <div class="ch-sparkline-wrap">
+        <div class="ch-sparkline-label">Commits — last 14 days</div>
+        ${chSparkline(r.commits, r.color)}
+      </div>
+      ${r.recentPRs.length?`<div class="ch-prs">${r.recentPRs.map(p=>{
+        const age=Math.floor((Date.now()-new Date(p.created_at).getTime())/(1000*60*60));
+        return `<div class="ch-pr-item">
+          <span class="ch-pr-num">#${p.number}</span>
+          <span class="ch-pr-title" title="${p.title}">${p.title}</span>
+          <span class="ch-pr-age">${chAgeLabel(age)}</span>
+        </div>`;
+      }).join('')}</div>`:''}
+    </div>`;
+  });
+
+  html+=`<div class="ch-refresh">
+    <span id="ch-last-updated-bottom"></span>
+    <button onclick="chLoadAll()">↻ Refresh</button>
+  </div>`;
+
+  document.getElementById('ch-content').innerHTML=html;
+}
 </script>
 </body>
 </html>
