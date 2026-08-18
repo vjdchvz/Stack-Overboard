@@ -1274,13 +1274,17 @@ function startBoards(){
 // ── Auth ──
 let currentUser=null;
 
+let _signingIn = false;
 function signInWithGoogle(){
+  if(_signingIn) return;
+  _signingIn = true;
   const provider=new firebase.auth.GoogleAuthProvider();
   const isMobile=/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+  const done = e => { _signingIn = false; if(e) alert('Sign-in failed: '+e.message); };
   if(isMobile){
-    auth.signInWithRedirect(provider).catch(e=>alert('Sign-in failed: '+e.message));
+    auth.signInWithRedirect(provider).catch(done);
   } else {
-    auth.signInWithPopup(provider).catch(e=>alert('Sign-in failed: '+e.message));
+    auth.signInWithPopup(provider).then(()=>done()).catch(done);
   }
 }
 function signOut(){
